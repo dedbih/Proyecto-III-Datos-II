@@ -9,13 +9,14 @@
 					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
 					"minimumCMakeVersion" : 
 					{
-						"string" : "3.31"
+						"string" : "3.20"
 					},
 					"projectIndex" : 0,
 					"source" : ".",
 					"targetIndexes" : 
 					[
-						0
+						0,
+						1
 					]
 				}
 			],
@@ -30,7 +31,8 @@
 					"name" : "Proyecto_III",
 					"targetIndexes" : 
 					[
-						0
+						0,
+						1
 					]
 				}
 			],
@@ -39,8 +41,15 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "Proyecto_III::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Proyecto_III-Debug-1b15dfc64df766ba7d58.json",
+					"jsonFile" : "target-Proyecto_III-Debug-10aa3d2267583aa6b395.json",
 					"name" : "Proyecto_III",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "generate_blocks::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-generate_blocks-Debug-378e6b518e4a0522ccec.json",
+					"name" : "generate_blocks",
 					"projectIndex" : 0
 				}
 			]
