@@ -75,7 +75,7 @@ int main() {
         std::cout << "...\n";
 
         // Save data for reconstruction
-        std::string json_path = "blocks.json";
+        std::string json_path = "../blocks.json";
         save_to_json(BLOCKS, ORIGINAL_SIZE, json_path);
 
         // Verify JSON creation

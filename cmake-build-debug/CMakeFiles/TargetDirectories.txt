@@ -1,6 +1,0 @@
-C:/Users/lasle/Desktop/Datos II/Proyecto III/cmake-build-debug/CMakeFiles/GenerateBlocksHpp.dir
-C:/Users/lasle/Desktop/Datos II/Proyecto III/cmake-build-debug/CMakeFiles/Proyecto_III.dir
-C:/Users/lasle/Desktop/Datos II/Proyecto III/cmake-build-debug/CMakeFiles/RunRaid.dir
-C:/Users/lasle/Desktop/Datos II/Proyecto III/cmake-build-debug/CMakeFiles/ReconstructPDF.dir
-C:/Users/lasle/Desktop/Datos II/Proyecto III/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/lasle/Desktop/Datos II/Proyecto III/cmake-build-debug/CMakeFiles/rebuild_cache.dir

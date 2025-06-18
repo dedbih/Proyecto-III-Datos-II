@@ -5,27 +5,30 @@ import json
 def blocks_to_pdf(blocks, original_size, output_path):
     all_bytes = bytearray()
     for block in blocks:
-        # Convert all elements to integers then to bytes
         byte_block = bytes(int(x) for x in block)
         all_bytes.extend(byte_block)
+
+    # Create output directory if needed
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     # Truncate to original size
     with open(output_path, 'wb') as f:
         f.write(all_bytes[:original_size])
     return len(all_bytes)
 
-if __name__ == "__main__":
+def main():
     print("\n=== block2pdf.py starting ===")
     print(f"Arguments: {sys.argv}")
     print(f"CWD: {os.getcwd()}")
 
     if len(sys.argv) != 3:
-        print(f"Error: Expected 2 arguments, got {len(sys.argv)-1}")
+        print("Error: Expected 2 arguments")
         print("Usage: python block2pdf.py <input.json> <output.pdf>")
         sys.exit(1)
 
-    input_json = sys.argv[1]
-    output_pdf = sys.argv[2]
+    # Convert to absolute paths
+    input_json = os.path.abspath(sys.argv[1])
+    output_pdf = os.path.abspath(sys.argv[2])
 
     print(f"Input JSON: {input_json}")
     print(f"Output PDF: {output_pdf}")
@@ -43,6 +46,7 @@ if __name__ == "__main__":
         blocks = data["blocks"]
         print(f"Original size: {original_size} bytes")
         print(f"Blocks count: {len(blocks)}")
+
         if blocks:
             print(f"First block size: {len(blocks[0])} bytes")
             print(f"First block start: {blocks[0][:5]}...")
@@ -52,7 +56,7 @@ if __name__ == "__main__":
 
         if os.path.exists(output_pdf):
             size = os.path.getsize(output_pdf)
-            print(f"PDF created at {os.path.abspath(output_pdf)}")
+            print(f"PDF created at {output_pdf}")
             print(f"PDF size: {size} bytes")
             if size == original_size:
                 print("Size matches original!")
@@ -67,3 +71,6 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
         sys.exit(1)
+
+if __name__ == "__main__":
+    main()
