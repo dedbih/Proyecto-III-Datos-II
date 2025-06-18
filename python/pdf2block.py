@@ -13,12 +13,9 @@ def pdf_to_blocks(pdf_path, block_size=4096):
     return blocks, len(data)
 
 def save_to_header(blocks, original_size, output_path):
-    # Get absolute path and ensure directory exists
     abs_path = os.path.abspath(output_path)
     output_dir = os.path.dirname(abs_path)
-
-    if output_dir:  # Only create directory if path contains one
-        os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
 
     with open(abs_path, 'w') as f:
         f.write("#pragma once\n#include <vector>\n\n")
@@ -29,10 +26,17 @@ def save_to_header(blocks, original_size, output_path):
         for block in blocks:
             f.write("    {" + ", ".join(f"0x{b:02x}" for b in block) + "},\n")
         f.write("};\n")
-        print(f"Saved header to: {abs_path}")
+    print(f"Saved header to: {abs_path}")
+    print(f"Header size: {os.path.getsize(abs_path) / 1024:.2f} KB")
+    print(f"Blocks: {len(blocks)}, Original size: {original_size} bytes")
+    if blocks:
+        print(f"Block size: {len(blocks[0])} bytes")
+        print(f"First 5 bytes: {blocks[0][:5]}")
 
 if __name__ == "__main__":
-    print("pdf2block.py starting...")
+    print("\n=== pdf2block.py starting ===")
+    print(f"Arguments: {sys.argv}")
+    print(f"CWD: {os.getcwd()}")
 
     if len(sys.argv) != 3:
         print("Usage: python pdf2block.py <input.pdf> <output.hpp>")
@@ -49,10 +53,11 @@ if __name__ == "__main__":
         sys.exit(1)
 
     try:
+        print(f"Processing PDF...")
         blocks, original_size = pdf_to_blocks(input_pdf)
         print(f"Converted PDF into {len(blocks)} blocks")
         save_to_header(blocks, original_size, output_header)
-        print(f"Successfully generated {output_header}")
+        print(f"Successfully generated header\n")
     except Exception as e:
         print(f"Error: {str(e)}")
         sys.exit(1)

@@ -16,7 +16,9 @@
 					"targetIndexes" : 
 					[
 						0,
-						1
+						1,
+						2,
+						3
 					]
 				}
 			],
@@ -32,7 +34,9 @@
 					"targetIndexes" : 
 					[
 						0,
-						1
+						1,
+						2,
+						3
 					]
 				}
 			],
@@ -40,16 +44,30 @@
 			[
 				{
 					"directoryIndex" : 0,
+					"id" : "GenerateBlocksHpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-GenerateBlocksHpp-Debug-0d779f9c3b609c3411f3.json",
+					"name" : "GenerateBlocksHpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
 					"id" : "Proyecto_III::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Proyecto_III-Debug-10aa3d2267583aa6b395.json",
+					"jsonFile" : "target-Proyecto_III-Debug-4aeff1de8566cd6db6f5.json",
 					"name" : "Proyecto_III",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
-					"id" : "generate_blocks::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-generate_blocks-Debug-378e6b518e4a0522ccec.json",
-					"name" : "generate_blocks",
+					"id" : "ReconstructPDF::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ReconstructPDF-Debug-e2935d88523e2a5411a3.json",
+					"name" : "ReconstructPDF",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "RunRaid::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-RunRaid-Debug-3e5911dd8f4535e89123.json",
+					"name" : "RunRaid",
 					"projectIndex" : 0
 				}
 			]

@@ -1,9 +1,4 @@
 C:\Users\lasle\AppData\Local\Programs\CLion\bin\cmake\win\x64\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=C:/Users/lasle/AppData/Local/Programs/CLion/bin/ninja/win/x64/ninja.exe -G Ninja -S "C:\Users\lasle\Desktop\Datos II\Proyecto III" -B "C:\Users\lasle\Desktop\Datos II\Proyecto III\cmake-build-debug"
--- Configuring done (0.2s)
-CMake Error at CMakeLists.txt:25 (add_dependencies):
-  The dependency target "C:/Users/lasle/Desktop/Datos II/Proyecto
-  III/blocks.hpp" of target "Proyecto_III" does not exist.
-
-
+-- Configuring done (1.3s)
 -- Generating done (0.0s)
-CMake Generate step failed.  Build files cannot be regenerated correctly.
+-- Build files have been written to: C:/Users/lasle/Desktop/Datos II/Proyecto III/cmake-build-debug

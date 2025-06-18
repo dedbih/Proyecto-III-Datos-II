@@ -1,3 +1,8 @@
 # ninja log v6
-939	1117	7718135759051714	Proyecto_III.exe	e6fe62b6978eff76
+2613	3125	7719095410226465	Proyecto_III.exe	a22299f3239bbdd2
+211	2611	7719095386212725	CMakeFiles/Proyecto_III.dir/cpp/raid_parity.cpp.obj	35f04523d3ec7229
 5	938	7718135749703645	CMakeFiles/Proyecto_III.dir/cpp/main.cpp.obj	df86c3399c19d22b
+3	211	7719095384134583	CMakeFiles/GenerateBlocksHpp	36369754d07c5e72
+3	211	7719095384134583	blocks.hpp	36369754d07c5e72
+3	211	7719095384134583	C:/Users/lasle/Desktop/Datos II/Proyecto III/cmake-build-debug/CMakeFiles/GenerateBlocksHpp	36369754d07c5e72
+3	211	7719095384134583	C:/Users/lasle/Desktop/Datos II/Proyecto III/cmake-build-debug/blocks.hpp	36369754d07c5e72

@@ -599,7 +599,7 @@
 			[
 				{
 					"name" : "HELPSTRING",
-					"value" : "Name of generator."
+					"value" : ""
 				}
 			],
 			"type" : "INTERNAL",

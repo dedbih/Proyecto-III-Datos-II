@@ -40,6 +40,12 @@ include CMakeFiles/rules.ninja
 # Logical path to working directory; prefix for absolute paths.
 
 cmake_ninja_workdir = C$:/Users/lasle/Desktop/Datos$ II/Proyecto$ III/cmake-build-debug/
+
+#############################################
+# Utility command for GenerateBlocksHpp
+
+build GenerateBlocksHpp: phony CMakeFiles/GenerateBlocksHpp blocks.hpp
+
 # =============================================================================
 # Object build statements for EXECUTABLE target Proyecto_III
 
@@ -47,12 +53,12 @@ cmake_ninja_workdir = C$:/Users/lasle/Desktop/Datos$ II/Proyecto$ III/cmake-buil
 #############################################
 # Order-only phony target for Proyecto_III
 
-build cmake_object_order_depends_target_Proyecto_III: phony || C$:/Users/lasle/Desktop/Datos$ II/Proyecto$ III/cpp/blocks.hpp generate_blocks
+build cmake_object_order_depends_target_Proyecto_III: phony || GenerateBlocksHpp
 
 build CMakeFiles/Proyecto_III.dir/cpp/raid_parity.cpp.obj: CXX_COMPILER__Proyecto_III_unscanned_Debug C$:/Users/lasle/Desktop/Datos$ II/Proyecto$ III/cpp/raid_parity.cpp || cmake_object_order_depends_target_Proyecto_III
   DEP_FILE = CMakeFiles\Proyecto_III.dir\cpp\raid_parity.cpp.obj.d
   FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
-  INCLUDES = -I"C:/Users/lasle/Desktop/Datos II/Proyecto III/cpp"
+  INCLUDES = -I"C:/Users/lasle/Desktop/Datos II/Proyecto III/cmake-build-debug"
   OBJECT_DIR = CMakeFiles\Proyecto_III.dir
   OBJECT_FILE_DIR = CMakeFiles\Proyecto_III.dir\cpp
 
@@ -64,7 +70,7 @@ build CMakeFiles/Proyecto_III.dir/cpp/raid_parity.cpp.obj: CXX_COMPILER__Proyect
 #############################################
 # Link the executable Proyecto_III.exe
 
-build Proyecto_III.exe: CXX_EXECUTABLE_LINKER__Proyecto_III_Debug CMakeFiles/Proyecto_III.dir/cpp/raid_parity.cpp.obj || generate_blocks
+build Proyecto_III.exe: CXX_EXECUTABLE_LINKER__Proyecto_III_Debug CMakeFiles/Proyecto_III.dir/cpp/raid_parity.cpp.obj || GenerateBlocksHpp
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\Proyecto_III.dir
@@ -76,9 +82,15 @@ build Proyecto_III.exe: CXX_EXECUTABLE_LINKER__Proyecto_III_Debug CMakeFiles/Pro
 
 
 #############################################
-# Utility command for generate_blocks
+# Utility command for RunRaid
 
-build generate_blocks: phony CMakeFiles/generate_blocks C$:/Users/lasle/Desktop/Datos$ II/Proyecto$ III/cpp/blocks.hpp
+build RunRaid: phony CMakeFiles/RunRaid Proyecto_III.exe
+
+
+#############################################
+# Utility command for ReconstructPDF
+
+build ReconstructPDF: phony CMakeFiles/ReconstructPDF RunRaid
 
 
 #############################################
@@ -105,18 +117,28 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 
 
 #############################################
-# Custom command for C:\Users\lasle\Desktop\Datos II\Proyecto III\cpp\blocks.hpp
+# Custom command for CMakeFiles\GenerateBlocksHpp
 
-build C$:/Users/lasle/Desktop/Datos$ II/Proyecto$ III/cpp/blocks.hpp: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D "C:\Users\lasle\Desktop\Datos II\Proyecto III\python" && "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\python3.13.exe" "C:/Users/lasle/Desktop/Datos II/Proyecto III/python/pdfconverter.py""
-  DESC = Generating C++ blocks from PDF
+build CMakeFiles/GenerateBlocksHpp blocks.hpp | ${cmake_ninja_workdir}CMakeFiles/GenerateBlocksHpp ${cmake_ninja_workdir}blocks.hpp: CUSTOM_COMMAND
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D "C:\Users\lasle\Desktop\Datos II\Proyecto III" && "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\python3.13.exe" "C:/Users/lasle/Desktop/Datos II/Proyecto III/python/pdf2block.py" "C:/Users/lasle/Desktop/Datos II/Proyecto III/python/pedefe.pdf" "C:/Users/lasle/Desktop/Datos II/Proyecto III/cmake-build-debug/blocks.hpp""
+  DESC = Generating blocks.hpp from PDF
   restat = 1
 
 
 #############################################
-# Phony custom command for CMakeFiles\generate_blocks
+# Custom command for CMakeFiles\RunRaid
 
-build CMakeFiles/generate_blocks | ${cmake_ninja_workdir}CMakeFiles/generate_blocks: phony C$:/Users/lasle/Desktop/Datos$ II/Proyecto$ III/cpp/blocks.hpp
+build CMakeFiles/RunRaid | ${cmake_ninja_workdir}CMakeFiles/RunRaid: CUSTOM_COMMAND Proyecto_III.exe || GenerateBlocksHpp Proyecto_III.exe
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D "C:\Users\lasle\Desktop\Datos II\Proyecto III\cmake-build-debug" && "C:\Users\lasle\Desktop\Datos II\Proyecto III\cmake-build-debug\Proyecto_III.exe""
+  DESC = Running RAID simulation
+
+
+#############################################
+# Custom command for CMakeFiles\ReconstructPDF
+
+build CMakeFiles/ReconstructPDF | ${cmake_ninja_workdir}CMakeFiles/ReconstructPDF: CUSTOM_COMMAND || GenerateBlocksHpp Proyecto_III.exe RunRaid
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D "C:\Users\lasle\Desktop\Datos II\Proyecto III\cmake-build-debug" && "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\python3.13.exe" "C:/Users/lasle/Desktop/Datos II/Proyecto III/python/block2pdf.py" "C:/Users/lasle/Desktop/Datos II/Proyecto III/cmake-build-debug/blocks.json" "C:/Users/lasle/Desktop/Datos II/Proyecto III/reconstructed.pdf""
+  DESC = Reconstructing PDF from blocks.json
 
 # =============================================================================
 # Target aliases.
@@ -131,7 +153,7 @@ build Proyecto_III: phony Proyecto_III.exe
 #############################################
 # Folder: C:/Users/lasle/Desktop/Datos II/Proyecto III/cmake-build-debug
 
-build all: phony Proyecto_III.exe
+build all: phony GenerateBlocksHpp Proyecto_III.exe RunRaid ReconstructPDF
 
 # =============================================================================
 # Built-in targets
