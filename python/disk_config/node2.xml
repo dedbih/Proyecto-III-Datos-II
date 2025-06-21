@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<config><ip>0.0.0.0</ip><port>5002</port><path>./storage/node2</path></config>
