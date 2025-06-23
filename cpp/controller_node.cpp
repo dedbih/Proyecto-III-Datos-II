@@ -11,25 +11,25 @@
 namespace fs = std::filesystem;
 using namespace httplib;
 using json = nlohmann::json;
-using ByteBlock = std::vector<uint8_t>;
-using Blocks = std::vector<ByteBlock>;
+using ByteBlock = std::vector<uint8_t>; // Array de longitud variable con datos binarios
+using Blocks = std::vector<ByteBlock>; // Conjunto de ByteBlocks
 
 const std::vector<std::string> DISK_NODES = {
-    "http://127.0.0.1:5001",
+    "http://127.0.0.1:5001", // 3 nodos para datos
     "http://127.0.0.1:5002",
     "http://127.0.0.1:5003",
-    "http://127.0.0.1:5004"
+    "http://127.0.0.1:5004" // 1 nodo para paridad
 };
 
-// Global map to store original file sizes
+// mapa que guarda los tamaños de dato originales
 std::unordered_map<std::string, size_t> file_original_sizes;
 
-ByteBlock calculate_parity(const Blocks& blocks) {
+ByteBlock calculate_parity(const Blocks& blocks) { // Calcula el bloque de paridad XOR
     if (blocks.empty()) throw std::runtime_error("No blocks provided");
-    ByteBlock parity(blocks[0].size(), 0);
+    ByteBlock parity(blocks[0].size(), 0); //Crea byteblock de paridad
     for (const auto& block : blocks) {
         for (size_t i = 0; i < block.size(); ++i) {
-            parity[i] ^= block[i];
+            parity[i] ^= block[i]; //Comparación XOR
         }
     }
     return parity;
@@ -41,7 +41,7 @@ void distribute_blocks(const Blocks& blocks, const std::string& file_id) {
         clients.push_back(Client(url.c_str()));
     }
 
-    // Store data blocks
+    // envía 3 bloques a los primeros 3 nodos
     for (int i = 0; i < 3; i++) {
         json block_json;
         block_json["id"] = file_id + "_block" + std::to_string(i);
@@ -56,7 +56,7 @@ void distribute_blocks(const Blocks& blocks, const std::string& file_id) {
         }
     }
 
-    // Calculate and store parity
+    // Calcula y envía paridad al nodo 4
     ByteBlock parity = calculate_parity({blocks[0], blocks[1], blocks[2]});
     json parity_json;
     parity_json["id"] = file_id + "_parity";
@@ -79,7 +79,7 @@ Blocks reconstruct_file(const std::string& file_id) {
 
     Blocks recovered_blocks;
 
-    // Retrieve data blocks
+    // Intenta recuperar los 3 bloques
     for (int i = 0; i < 3; i++) {
         std::string block_id = file_id + "_block" + std::to_string(i);
         auto res = clients[i].Get(("/retrieve/" + block_id).c_str());
@@ -97,7 +97,7 @@ Blocks reconstruct_file(const std::string& file_id) {
         }
     }
 
-    // Recover missing blocks using parity
+    // Si falta un bloque, usa la paridad para reconstruirlo
     if (recovered_blocks.size() < 3) {
         auto parity_res = clients[3].Get(("/retrieve/" + file_id + "_parity").c_str());
         if (!parity_res || parity_res->status != 200) {
@@ -124,9 +124,9 @@ Blocks reconstruct_file(const std::string& file_id) {
 int main() {
     Server svr;
 
-    // Upload endpoint
+    // upload endpoint
     svr.Post("/upload", [](const Request& req, Response& res) {
-        // Check for empty body
+        // revisa si está vacío
         if (req.body.empty()) {
             res.status = 400;
             res.set_content("Missing file data", "text/plain");
@@ -134,15 +134,15 @@ int main() {
         }
 
         try {
-            // Convert body to bytes
+            // Convierte el contenido a bytes
             std::vector<uint8_t> file_data(req.body.begin(), req.body.end());
             size_t original_size = file_data.size();
 
-            // Pad data to make divisible by 3
+            // Añade padding si es necesario (para división en 3 bloques)
             size_t pad = (3 - (original_size % 3)) % 3;
             file_data.insert(file_data.end(), pad, 0);
 
-            // Split into 3 equal blocks
+            // Divide en 3 bloques y distribuye
             size_t block_size = file_data.size() / 3;
             Blocks blocks;
             for (int i = 0; i < 3; i++) {
@@ -152,6 +152,7 @@ int main() {
 
             std::string file_id = "file_" + std::to_string(time(nullptr));
             distribute_blocks(blocks, file_id);
+            // Guarda el tamaño original (para eliminar padding después)
             file_original_sizes[file_id] = original_size;
 
             json response;
@@ -167,15 +168,16 @@ int main() {
     // Download endpoint
     svr.Get("/download/:file_id", [](const Request& req, Response& res) {
         std::string file_id = req.path_params.at("file_id");
+        // Reconstruye los bloques (incluso si un nodo falló)
         Blocks blocks = reconstruct_file(file_id);
 
-        // Combine blocks
+        // Combina y elimina el padding
         std::vector<uint8_t> full_data;
         for (const auto& block : blocks) {
             full_data.insert(full_data.end(), block.begin(), block.end());
         }
 
-        // Truncate to original size
+        // convert to original size
         if (file_original_sizes.count(file_id)) {
             size_t original_size = file_original_sizes[file_id];
             full_data.resize(original_size);
@@ -186,6 +188,7 @@ int main() {
                 content_type = "application/pdf";
             }
 
+            // Devuelve el archivo original
             res.set_content(
                 std::string(full_data.begin(), full_data.end()),
                 content_type
@@ -196,7 +199,7 @@ int main() {
         }
     });
 
-    std::cout << "🚀 Controller running on port 8080\n";
+    std::cout << "Controller running on port 8080\n";
     svr.listen("0.0.0.0", 8080);
     return 0;
 }
