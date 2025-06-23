@@ -5,69 +5,82 @@ project(Proyecto_III)
 find_package(Python REQUIRED COMPONENTS Interpreter)
 set(CMAKE_CXX_STANDARD 20)
 
-# Use main directory for all outputs
-set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}")
-set(PDF_INPUT "${CMAKE_SOURCE_DIR}/python/pedefe.pdf")
-set(OUTPUT_HEADER "${OUTPUT_DIR}/blocks.hpp")
-set(OUTPUT_JSON "${CMAKE_BINARY_DIR}/blocks.json")
-set(OUTPUT_PDF "${OUTPUT_DIR}/reconstructed.pdf")
+# Configuration variables
+set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})
+set(PYTHON_DIR "${PROJECT_ROOT}/python")
+set(STORAGE_DIR "${PROJECT_ROOT}/storage")
+set(CONFIG_DIR "${PROJECT_ROOT}/disk_config")
 
-# 1. FIRST - Generate Disk Node configs
+# File paths
+set(PDF_INPUT "${PYTHON_DIR}/pedefe.pdf")
+set(OUTPUT_HEADER "${PROJECT_ROOT}/blocks.hpp")
+set(OUTPUT_JSON "${PROJECT_ROOT}/blocks.json")
+set(RECONSTRUCTED_PDF "${PROJECT_ROOT}/reconstructed.pdf")
+
+# 1. Generate Disk Node configs
 add_custom_target(GenerateConfigs ALL
-        COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate_xmls.py
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMAND ${Python_EXECUTABLE} "${PYTHON_DIR}/generate_xml.py"
+        WORKING_DIRECTORY ${PROJECT_ROOT}
         COMMENT "Generating Disk Node config XMLs"
         BYPRODUCTS
-        ${CMAKE_SOURCE_DIR}/disk_config/node1.xml
-        ${CMAKE_SOURCE_DIR}/disk_config/node2.xml
-        ${CMAKE_SOURCE_DIR}/disk_config/node3.xml
-        ${CMAKE_SOURCE_DIR}/disk_config/node4.xml
+        "${CONFIG_DIR}/node1.xml"
+        "${CONFIG_DIR}/node2.xml"
+        "${CONFIG_DIR}/node3.xml"
+        "${CONFIG_DIR}/node4.xml"
 )
 
-# 2. Generate blocks.hpp
-add_custom_target(GenerateBlocksHpp ALL
-        COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/python/pdf2block.py
+# 2. Generate blocks.hpp from PDF
+add_custom_target(GenerateBlocks ALL
+        COMMAND ${Python_EXECUTABLE} "${PYTHON_DIR}/pdf2block.py"
         "${PDF_INPUT}" "${OUTPUT_HEADER}"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMENT "Generating blocks.hpp from PDF"
+        WORKING_DIRECTORY ${PROJECT_ROOT}
+        COMMENT "Converting PDF to C++ blocks header"
+        DEPENDS GenerateConfigs
         BYPRODUCTS ${OUTPUT_HEADER}
 )
-add_dependencies(GenerateBlocksHpp GenerateConfigs)  # Configs must exist first
 
-# 3. Main executable
+# 3. Main controller executable
 add_executable(Proyecto_III
-        ${CMAKE_SOURCE_DIR}/cpp/raid_parity.cpp
-        ${CMAKE_SOURCE_DIR}/cpp/controller_node.cpp
+        cpp/controller_node.cpp
 )
-target_include_directories(Proyecto_III PRIVATE ${OUTPUT_DIR})
-add_dependencies(Proyecto_III GenerateBlocksHpp)
+
+target_include_directories(Proyecto_III PRIVATE
+        ${PROJECT_ROOT}/include
+        ${PROJECT_ROOT}  # For blocks.hpp
+)
+
+# Windows-specific linking
+if(WIN32)
+    target_link_libraries(Proyecto_III PRIVATE ws2_32)
+endif()
+
+add_dependencies(Proyecto_III GenerateBlocks)
 
 # 4. Create storage directories
-add_custom_target(CreateStorageDirs ALL
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/storage/node1
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/storage/node2
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/storage/node3
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/storage/node4
+add_custom_target(CreateStorage ALL
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${STORAGE_DIR}/node1
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${STORAGE_DIR}/node2
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${STORAGE_DIR}/node3
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${STORAGE_DIR}/node4
         COMMENT "Creating storage directories"
 )
 
-# 5. Run RAID program
-add_custom_target(RunRaid ALL
-        COMMAND ${CMAKE_COMMAND} -E chdir ${OUTPUT_DIR} $<TARGET_FILE:Proyecto_III>
-        COMMENT "Running RAID simulation"
-        DEPENDS Proyecto_III CreateStorageDirs
+# 5. Run Controller Node
+add_custom_target(RunController ALL
+        COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_ROOT} $<TARGET_FILE:Proyecto_III>
+        COMMENT "Running Controller Node"
+        DEPENDS Proyecto_III CreateStorage
 )
 
-# 6. Reconstruct PDF
-add_custom_target(ReconstructPDF ALL
-        COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/python/block2pdf.py
-        "${OUTPUT_JSON}" "${OUTPUT_PDF}"
-        WORKING_DIRECTORY ${OUTPUT_DIR}
-        COMMENT "Reconstructing PDF from blocks.json"
-        DEPENDS RunRaid
+# 6. PDF Reconstruction (optional - for testing)
+add_custom_target(TestReconstruction ALL
+        COMMAND ${Python_EXECUTABLE} "${PYTHON_DIR}/block2pdf.py"
+        "${OUTPUT_JSON}" "${RECONSTRUCTED_PDF}"
+        WORKING_DIRECTORY ${PROJECT_ROOT}
+        COMMENT "Testing PDF reconstruction from blocks"
+        DEPENDS RunController
         VERBATIM
 )
 
-# Final dependencies
-add_dependencies(RunRaid Proyecto_III)
-add_dependencies(ReconstructPDF RunRaid)
+# Final dependency chain
+add_dependencies(TestReconstruction RunController)

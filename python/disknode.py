@@ -8,55 +8,44 @@ STORAGE = {}
 
 def load_config(config_path):
     """Carga configuración desde XML"""
-    tree = ET.parse(config_path)
+    # Convert to absolute path
+    abs_path = os.path.abspath(config_path)
+    print(f"Loading config from: {abs_path}")
+
+    if not os.path.exists(abs_path):
+        raise FileNotFoundError(f"Config file not found: {abs_path}")
+
+    tree = ET.parse(abs_path)
     root = tree.getroot()
+
+    # Convert storage path to absolute path
+    storage_path = root.find('path').text
+    if not os.path.isabs(storage_path):
+        storage_path = os.path.abspath(storage_path)
+
     return {
         'ip': root.find('ip').text,
         'port': int(root.find('port').text),
-        'path': root.find('path').text
+        'path': storage_path
     }
 
-@app.route('/store', methods=['POST'])
-def store_block():
-    """Almacena un bloque de datos"""
-    data = request.json
-    block_id = data['id']
-    content = bytes(data['data'])
-
-    # Guardar en sistema de archivos
-    block_path = os.path.join(app.config['STORAGE_PATH'], block_id)
-    with open(block_path, 'wb') as f:
-        f.write(content)
-
-    STORAGE[block_id] = content
-    return jsonify({"status": "success", "block": block_id}), 200
-
-@app.route('/retrieve/<block_id>', methods=['GET'])
-def retrieve_block(block_id):
-    """Recupera un bloque de datos"""
-    block_path = os.path.join(app.config['STORAGE_PATH'], block_id)
-
-    if not os.path.exists(block_path):
-        return jsonify({"error": "Block not found"}), 404
-
-    with open(block_path, 'rb') as f:
-        content = list(f.read())
-
-    return jsonify({
-        "id": block_id,
-        "data": content
-    }), 200
+# ... rest of your disknode.py code remains the same ...
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print("Usage: python disk_node.py <config.xml>")
         sys.exit(1)
 
-    config = load_config(sys.argv[1])
-    app.config['STORAGE_PATH'] = config['path']
+    try:
+        config = load_config(sys.argv[1])
+        app.config['STORAGE_PATH'] = config['path']
 
-    # Crear directorio si no existe
-    os.makedirs(config['path'], exist_ok=True)
+        # Crear directorio si no existe
+        os.makedirs(config['path'], exist_ok=True)
 
-    print(f"Starting Disk Node at {config['ip']}:{config['port']}")
-    app.run(host=config['ip'], port=config['port'])
+        print(f"Starting Disk Node at {config['ip']}:{config['port']}")
+        print(f"Storage path: {config['path']}")
+        app.run(host=config['ip'], port=config['port'])
+    except Exception as e:
+        print(f"ERROR: {str(e)}")
+        input("Press Enter to exit...")  # Keeps window open on error
