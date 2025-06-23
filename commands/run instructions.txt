@@ -1,0 +1,10 @@
+
+
+
+instrucciones
+
+run startnodes.bat
+run controller_node.cpp in clion
+open command prompt and cd "C:\Users\lasle\Desktop\Datos II\Proyecto III\output"
+curl -X POST http://localhost:8080/upload --data-binary "@C:\Users\lasle\Desktop\Datos II\Proyecto III\python\pedefe.pdf" -H "Content-Type: application/octet-stream"
+curl -X GET http://localhost:8080/download/file_x --output downloaded.pdf (copy correct file name)

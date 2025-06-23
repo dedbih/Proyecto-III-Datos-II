@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include "httplib.h"
 #include <fstream>
 #include <sstream>
@@ -14,11 +15,14 @@ using ByteBlock = std::vector<uint8_t>;
 using Blocks = std::vector<ByteBlock>;
 
 const std::vector<std::string> DISK_NODES = {
-    "http://localhost:5001",
-    "http://localhost:5002",
-    "http://localhost:5003",
-    "http://localhost:5004"
+    "http://127.0.0.1:5001",
+    "http://127.0.0.1:5002",
+    "http://127.0.0.1:5003",
+    "http://127.0.0.1:5004"
 };
+
+// Global map to store original file sizes
+std::unordered_map<std::string, size_t> file_original_sizes;
 
 ByteBlock calculate_parity(const Blocks& blocks) {
     if (blocks.empty()) throw std::runtime_error("No blocks provided");
@@ -44,9 +48,11 @@ void distribute_blocks(const Blocks& blocks, const std::string& file_id) {
         block_json["data"] = blocks[i];
 
         auto res = clients[i].Post("/store", block_json.dump(), "application/json");
-        if (!res || res->status != 200) {
+        if (!res) {
+            std::cerr << "Connection failed to node " << (i+1) << "\n";
+        } else if (res->status != 200) {
             std::cerr << "Error storing block " << i << " on node " << (i+1)
-                      << ": " << (res ? res->status : -1) << "\n";
+                      << ": " << res->status << " - " << res->body << "\n";
         }
     }
 
@@ -57,8 +63,11 @@ void distribute_blocks(const Blocks& blocks, const std::string& file_id) {
     parity_json["data"] = parity;
 
     auto res = clients[3].Post("/store", parity_json.dump(), "application/json");
-    if (!res || res->status != 200) {
-        std::cerr << "Error storing parity on node 4: " << (res ? res->status : -1) << "\n";
+    if (!res) {
+        std::cerr << "Connection failed to node 4 (parity)\n";
+    } else if (res->status != 200) {
+        std::cerr << "Error storing parity on node 4: "
+                  << res->status << " - " << res->body << "\n";
     }
 }
 
@@ -117,13 +126,42 @@ int main() {
 
     // Upload endpoint
     svr.Post("/upload", [](const Request& req, Response& res) {
-        std::string file_id = "file_" + std::to_string(time(nullptr));
-        distribute_blocks(BLOCKS, file_id);
+        // Check for empty body
+        if (req.body.empty()) {
+            res.status = 400;
+            res.set_content("Missing file data", "text/plain");
+            return;
+        }
 
-        json response;
-        response["file_id"] = file_id;
-        response["status"] = "success";
-        res.set_content(response.dump(), "application/json");
+        try {
+            // Convert body to bytes
+            std::vector<uint8_t> file_data(req.body.begin(), req.body.end());
+            size_t original_size = file_data.size();
+
+            // Pad data to make divisible by 3
+            size_t pad = (3 - (original_size % 3)) % 3;
+            file_data.insert(file_data.end(), pad, 0);
+
+            // Split into 3 equal blocks
+            size_t block_size = file_data.size() / 3;
+            Blocks blocks;
+            for (int i = 0; i < 3; i++) {
+                auto start = file_data.begin() + i * block_size;
+                blocks.push_back(ByteBlock(start, start + block_size));
+            }
+
+            std::string file_id = "file_" + std::to_string(time(nullptr));
+            distribute_blocks(blocks, file_id);
+            file_original_sizes[file_id] = original_size;
+
+            json response;
+            response["file_id"] = file_id;
+            response["status"] = "success";
+            res.set_content(response.dump(), "application/json");
+        } catch (const std::exception& e) {
+            res.status = 500;
+            res.set_content(json{{"error", e.what()}}.dump(), "application/json");
+        }
     });
 
     // Download endpoint
@@ -131,20 +169,30 @@ int main() {
         std::string file_id = req.path_params.at("file_id");
         Blocks blocks = reconstruct_file(file_id);
 
-        std::string output_path = "reconstructed_" + file_id + ".pdf";
-        std::ofstream out(output_path, std::ios::binary);
+        // Combine blocks
+        std::vector<uint8_t> full_data;
         for (const auto& block : blocks) {
-            out.write(reinterpret_cast<const char*>(block.data()), block.size());
+            full_data.insert(full_data.end(), block.begin(), block.end());
         }
-        out.close();
 
-        if (std::ifstream file(output_path, std::ios::binary); file) {
-            res.set_content(std::string(
-                (std::istreambuf_iterator<char>(file)),
-                std::istreambuf_iterator<char>()
-            ), "application/pdf");
+        // Truncate to original size
+        if (file_original_sizes.count(file_id)) {
+            size_t original_size = file_original_sizes[file_id];
+            full_data.resize(original_size);
+
+            // Determine content type (default to application/octet-stream)
+            std::string content_type = "application/octet-stream";
+            if (file_id.find(".pdf") != std::string::npos) {
+                content_type = "application/pdf";
+            }
+
+            res.set_content(
+                std::string(full_data.begin(), full_data.end()),
+                content_type
+            );
         } else {
-            res.set_content(json{{"error", "File reconstruction failed"}}.dump(), "application/json");
+            res.status = 404;
+            res.set_content("Original size not found", "text/plain");
         }
     });
 

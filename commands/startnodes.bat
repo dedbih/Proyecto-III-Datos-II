@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set "project_root=%~dp0"
+set "project_root=%~dp0..\"
 set "python_script=%project_root%python\disknode.py"
 
 for %%i in (1 2 3 4) do (
